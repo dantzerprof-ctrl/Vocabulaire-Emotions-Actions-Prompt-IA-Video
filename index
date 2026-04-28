@@ -1,0 +1,840 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Direction d'Acteur & Émotions — Prompts IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Unbounded:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --surface: #ede8de;
+    --surface2: #e4ddd0;
+    --border: #d4cbb8;
+    --border-light: #e8e2d4;
+    --ink: #1a1710;
+    --ink-mid: #3d3928;
+    --ink-dim: #7a7260;
+    --ink-muted: #a09880;
+
+    --veo: #c8460a;
+    --veo-bg: rgba(200,70,10,0.08);
+    --veo-border: rgba(200,70,10,0.3);
+
+    --kling: #1a5c9e;
+    --kling-bg: rgba(26,92,158,0.08);
+    --kling-border: rgba(26,92,158,0.3);
+
+    --mj: #2d7a4a;
+    --mj-bg: rgba(45,122,74,0.08);
+    --mj-border: rgba(45,122,74,0.3);
+
+    --canvas: #8b3aa8;
+    --canvas-bg: rgba(139,58,168,0.08);
+    --canvas-border: rgba(139,58,168,0.3);
+
+    --banana: #b8860b;
+    --banana-bg: rgba(184,134,11,0.08);
+    --banana-border: rgba(184,134,11,0.3);
+
+    --all-border: rgba(26,23,16,0.25);
+    --all-bg: rgba(26,23,16,0.04);
+
+    --flash: #c8460a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    padding: 4rem 2rem 2.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  header::after {
+    content: 'ACTING · PSYCHOLOGIE · DIRECTION';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--ink-muted);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .header-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  header h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+
+  header h1 em {
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2em;
+    font-weight: 300;
+    color: var(--veo);
+  }
+
+  header .subtitle {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--ink-dim);
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    max-width: 750px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--ink-dim);
+    padding: 0.3rem 0.75rem;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.18s;
+    user-select: none;
+    letter-spacing: 0.05em;
+  }
+
+  .legend-item:hover { border-color: var(--ink-dim); color: var(--ink); }
+
+  .legend-item.active { color: var(--ink); border-color: var(--ink-mid); background: var(--surface2); }
+  .legend-item[data-filter="veo"].active { border-color: var(--veo); background: var(--veo-bg); color: var(--veo); }
+  .legend-item[data-filter="kling"].active { border-color: var(--kling); background: var(--kling-bg); color: var(--kling); }
+  .legend-item[data-filter="mj"].active { border-color: var(--mj); background: var(--mj-bg); color: var(--mj); }
+  .legend-item[data-filter="canvas"].active { border-color: var(--canvas); background: var(--canvas-bg); color: var(--canvas); }
+  .legend-item[data-filter="banana"].active { border-color: var(--banana); background: var(--banana-bg); color: var(--banana); }
+
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── SEARCH ── */
+  .search-wrap {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .search-wrap input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: 2px solid var(--ink-mid);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    padding: 0.65rem 1rem;
+    border-radius: 0;
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 0.02em;
+  }
+
+  .search-wrap input:focus { border-bottom-color: var(--veo); }
+  .search-wrap input::placeholder { color: var(--ink-muted); font-style: italic; }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    margin-bottom: 3rem;
+  }
+
+  .section-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .section-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--border);
+    line-height: 1;
+    width: 3rem;
+    text-align: center;
+  }
+
+  .section-info {}
+
+  .section-title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-mid);
+  }
+
+  .section-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--ink-muted);
+    margin-top: 0.1rem;
+  }
+
+  .section-line {
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 0.5rem;
+  }
+
+  /* ── CARD ── */
+  .term {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-left: 3px solid var(--border);
+    padding: 0.8rem 1rem 0.8rem 1rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    overflow: hidden;
+  }
+
+  .term:hover {
+    background: var(--surface2);
+    border-left-color: var(--ink-mid);
+    transform: translateX(2px);
+    box-shadow: -4px 4px 16px rgba(26,23,16,0.08);
+  }
+
+  /* platform left-border colors */
+  .term.veo { border-left-color: var(--veo-border); }
+  .term.veo:hover { border-left-color: var(--veo); }
+  .term.kling { border-left-color: var(--kling-border); }
+  .term.kling:hover { border-left-color: var(--kling); }
+  .term.mj { border-left-color: var(--mj-border); }
+  .term.mj:hover { border-left-color: var(--mj); }
+  .term.canvas { border-left-color: var(--canvas-border); }
+  .term.canvas:hover { border-left-color: var(--canvas); }
+  .term.banana { border-left-color: var(--banana-border); }
+  .term.banana:hover { border-left-color: var(--banana); }
+  .term.all { border-left-color: var(--border); }
+  .term.all:hover { border-left-color: var(--ink-mid); }
+
+  /* top row */
+  .term-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .term-en {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+  }
+
+  .term-fr {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--ink-dim);
+    line-height: 1.3;
+    margin-bottom: 0.3rem;
+  }
+
+  .term-desc {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  .term-source {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--ink-muted);
+    background: rgba(26,23,16,0.05);
+    border: 1px solid var(--border);
+    padding: 1px 5px;
+    border-radius: 2px;
+    margin-top: 0.4rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* badges */
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    flex-shrink: 0;
+    max-width: 110px;
+    justify-content: flex-end;
+  }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.52rem;
+    font-weight: 500;
+    padding: 1px 4px;
+    border-radius: 1px;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  .badge.veo { background: var(--veo-bg); color: var(--veo); border: 1px solid var(--veo-border); }
+  .badge.kling { background: var(--kling-bg); color: var(--kling); border: 1px solid var(--kling-border); }
+  .badge.mj { background: var(--mj-bg); color: var(--mj); border: 1px solid var(--mj-border); }
+  .badge.canvas { background: var(--canvas-bg); color: var(--canvas); border: 1px solid var(--canvas-border); }
+  .badge.banana { background: var(--banana-bg); color: var(--banana); border: 1px solid var(--banana-border); }
+
+  /* copy flash */
+  .copy-hint {
+    position: absolute;
+    right: 0.6rem;
+    bottom: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--ink-muted);
+    opacity: 0;
+    transition: opacity 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .term:hover .copy-hint { opacity: 0.7; }
+
+  .term.copied {
+    border-left-color: var(--flash) !important;
+    background: rgba(200,70,10,0.05) !important;
+  }
+
+  .term.copied::after {
+    content: '✓ copié dans le presse-papier';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(200,70,10,0.07);
+    color: var(--flash);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    pointer-events: none;
+    border-radius: 0;
+  }
+
+  /* hidden */
+  .term.hidden { display: none; }
+  .section.hidden { display: none; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 400;
+    padding: 0.55rem 1.3rem;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 9998;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .section-num { display: none; }
+    header { padding: 2rem 1rem 2rem; }
+  }
+
+  /* ── DECORATIVE DIVIDER ── */
+  .ornament {
+    text-align: center;
+    color: var(--border);
+    font-size: 1rem;
+    letter-spacing: 1rem;
+    margin: 0 auto 1.5rem;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Vocabulaire de Direction · Prompts IA Vidéo & Image</div>
+  <h1>Actions & <em>Émotions</em></h1>
+  <p class="subtitle">De la direction d'acteur à la psychologie — pour générer du vivant</p>
+
+  <div class="legend">
+    <div class="legend-item active" data-filter="all">
+      <div class="dot" style="background:linear-gradient(135deg,#c8460a,#1a5c9e,#2d7a4a,#8b3aa8,#b8860b)"></div>
+      Toutes
+    </div>
+    <div class="legend-item" data-filter="veo">
+      <div class="dot" style="background:var(--veo)"></div>
+      Veo 3
+    </div>
+    <div class="legend-item" data-filter="kling">
+      <div class="dot" style="background:var(--kling)"></div>
+      Kling AI
+    </div>
+    <div class="legend-item" data-filter="mj">
+      <div class="dot" style="background:var(--mj)"></div>
+      Midjourney
+    </div>
+    <div class="legend-item" data-filter="canvas">
+      <div class="dot" style="background:var(--canvas)"></div>
+      Omni Canvas
+    </div>
+    <div class="legend-item" data-filter="banana">
+      <div class="dot" style="background:var(--banana)"></div>
+      Nano Banana
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Rechercher… ex: grief, hesitation, Stanislavski" autocomplete="off">
+  </div>
+</header>
+
+<main id="main"></main>
+
+<div id="toast">COPIÉ</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA
+// source: 'stanislavski' | 'meisner' | 'laban' | 'psycho' | 'direction' | 'universal'
+// platforms: array of 'veo' | 'kling' | 'mj' | 'canvas' | 'banana'
+// ═══════════════════════════════════════════════════════════════════════════
+const SECTIONS = [
+  {
+    num: '01',
+    icon: '🎭',
+    title: 'États Intérieurs Fondamentaux',
+    subtitle: 'Core emotional states — émotions primaires',
+    terms: [
+      { en: 'raw grief', fr: 'deuil brut', desc: 'Douleur non filtrée, non performée — corps effondré, regard vide', source: 'psycho', platforms: ['veo','kling','canvas'] },
+      { en: 'suppressed sorrow', fr: 'tristesse contenue', desc: 'L\'émotion retenue derrière un masque de contrôle — tension musculaire', source: 'stanislavski', platforms: ['all'] },
+      { en: 'quiet joy', fr: 'joie silencieuse', desc: 'Bonheur intérieur non exprimé — sourire retenu, yeux lumineux', source: 'direction', platforms: ['all'] },
+      { en: 'overwhelming elation', fr: 'euphorie débordante', desc: 'Joie explosive qui dépasse le corps', source: 'direction', platforms: ['veo','kling','canvas'] },
+      { en: 'cold fury', fr: 'colère froide', desc: 'Rage maîtrisée — plus dangereuse que l\'éclat, regard acéré', source: 'stanislavski', platforms: ['all'] },
+      { en: 'righteous anger', fr: 'colère juste / indignation', desc: 'Colère morale, sentiment d\'injustice profond', source: 'psycho', platforms: ['all'] },
+      { en: 'primal fear', fr: 'peur primale / terreur instinctive', desc: 'Peur viscérale, réflexe de survie — corps figé ou en fuite', source: 'psycho', platforms: ['veo','kling'] },
+      { en: 'existential dread', fr: 'angoisse existentielle', desc: 'Peur sans objet précis — vide, absurde, fin', source: 'psycho', platforms: ['veo','mj','canvas'] },
+      { en: 'hollow emptiness', fr: 'vide intérieur', desc: 'Affect plat, dissociation — le personnage n\'est plus là', source: 'psycho', platforms: ['all'] },
+      { en: 'quiet despair', fr: 'désespoir silencieux', desc: 'La résignation sans larmes — épuisement de l\'espoir', source: 'direction', platforms: ['all'] },
+      { en: 'burning shame', fr: 'honte brûlante', desc: 'Envie de disparaître — regard fuyant, corps qui se rétracte', source: 'psycho', platforms: ['all'] },
+      { en: 'tender longing', fr: 'nostalgie tendre / désir doux', desc: 'Aspiration vers quelque chose d\'absent ou de perdu', source: 'direction', platforms: ['all'] },
+    ]
+  },
+  {
+    num: '02',
+    icon: '🧠',
+    title: 'États Psychologiques Complexes',
+    subtitle: 'Psychological nuance — au-delà des émotions simples',
+    terms: [
+      { en: 'cognitive dissonance', fr: 'dissonance cognitive', desc: 'Conflit entre deux certitudes — regard troublé, immobilité tendue', source: 'psycho', platforms: ['veo','mj','canvas'] },
+      { en: 'dissociation', fr: 'dissociation', desc: 'Déconnexion du réel — regard absent, mouvements mécaniques', source: 'psycho', platforms: ['veo','kling','mj'] },
+      { en: 'hyper-vigilance', fr: 'hyper-vigilance', desc: 'Attention exacerbée au danger — yeux qui scrutent, corps tendu', source: 'psycho', platforms: ['veo','kling'] },
+      { en: 'ambivalence', fr: 'ambivalence', desc: 'Deux sentiments opposés simultanés — ni l\'un ni l\'autre', source: 'psycho', platforms: ['all'] },
+      { en: 'masked emotion', fr: 'émotion masquée', desc: 'Ce que le personnage montre n\'est pas ce qu\'il ressent', source: 'stanislavski', platforms: ['all'] },
+      { en: 'repressed desire', fr: 'désir réprimé', desc: 'Attirance contenue — regard détourné, gestes retenus', source: 'psycho', platforms: ['veo','mj','canvas'] },
+      { en: 'melancholia', fr: 'mélancolie', desc: 'Tristesse douce, rêveuse — tons sombres et beauté dans la peine', source: 'psycho', platforms: ['all'] },
+      { en: 'cathartic release', fr: 'libération cathartique', desc: 'L\'émotion longtemps retenue qui éclate enfin', source: 'stanislavski', platforms: ['veo','kling'] },
+      { en: 'emotional numbness', fr: 'engourdissement émotionnel', desc: 'Plus rien n\'atteint — état post-traumatique', source: 'psycho', platforms: ['veo','mj','kling'] },
+      { en: 'controlled panic', fr: 'panique contrôlée', desc: 'Le personnage tente de masquer une panique intérieure', source: 'direction', platforms: ['veo','kling','canvas'] },
+      { en: 'survivor\'s guilt', fr: 'culpabilité du survivant', desc: 'Être en vie alors que d\'autres ne le sont plus', source: 'psycho', platforms: ['veo','mj'] },
+      { en: 'quiet madness', fr: 'folie douce', desc: 'Déraison exprimée avec calme et logique intérieure', source: 'direction', platforms: ['veo','mj','canvas'] },
+    ]
+  },
+  {
+    num: '03',
+    icon: '🎬',
+    title: 'Direction Stanislavski / Méthode',
+    subtitle: 'Method acting principles — pour animer l\'intérieur',
+    terms: [
+      { en: 'the character\'s objective', fr: 'objectif du personnage (Stanislavski)', desc: 'Ce que le personnage veut absolument obtenir dans la scène', source: 'stanislavski', platforms: ['veo','kling'] },
+      { en: 'inner monologue visible', fr: 'monologue intérieur visible', desc: 'Le visage trahit la pensée — micro-expressions de réflexion', source: 'stanislavski', platforms: ['veo','mj','canvas'] },
+      { en: 'emotional memory', fr: 'mémoire affective', desc: 'L\'acteur revit un souvenir personnel — authenticité bouleversante', source: 'stanislavski', platforms: ['veo','kling'] },
+      { en: 'the given circumstances', fr: 'les circonstances données', desc: 'Le contexte qui pèse sur le personnage — tension en arrière-plan', source: 'stanislavski', platforms: ['veo','kling','canvas'] },
+      { en: 'subtext', fr: 'sous-texte', desc: 'Ce qui est dit n\'est pas ce qui est ressenti — deux niveaux de lecture', source: 'stanislavski', platforms: ['all'] },
+      { en: 'Meisner repetition', fr: 'répétition Meisner', desc: 'Réaction authentique au partenaire — présence totale, écoute', source: 'meisner', platforms: ['veo','kling'] },
+      { en: 'as if (magic if)', fr: 'comme si (le "si magique")', desc: 'Que ferais-je si cette situation était réelle ? Conviction totale', source: 'stanislavski', platforms: ['veo','kling'] },
+      { en: 'sense memory', fr: 'mémoire sensorielle', desc: 'Le corps se souvient — frisson, odeur, chaleur — réaction physique réelle', source: 'stanislavski', platforms: ['veo','kling'] },
+      { en: 'the through-line of action', fr: 'la ligne d\'action continue', desc: 'Le fil conducteur de motivation du début à la fin de la scène', source: 'stanislavski', platforms: ['veo','kling'] },
+      { en: 'moment before', fr: 'le moment avant', desc: 'Ce qui s\'est passé juste avant — le personnage arrive chargé', source: 'meisner', platforms: ['veo','kling','canvas'] },
+    ]
+  },
+  {
+    num: '04',
+    icon: '💃',
+    title: 'Corps & Mouvement (Laban)',
+    subtitle: 'Physical expression — le corps comme langage',
+    terms: [
+      { en: 'weight: heavy, sinking', fr: 'poids lourd, affaissement (Laban)', desc: 'Corps qui cède à la gravité — fatigue, désespoir, lourdeur', source: 'laban', platforms: ['veo','kling'] },
+      { en: 'weight: light, floating', fr: 'légèreté, flottement (Laban)', desc: 'Corps qui résiste à la gravité — grâce, rêve, joie', source: 'laban', platforms: ['veo','kling','mj'] },
+      { en: 'sudden impulse', fr: 'impulsion soudaine', desc: 'Mouvement bref et direct — décision, choc, réaction', source: 'laban', platforms: ['veo','kling','canvas'] },
+      { en: 'sustained motion', fr: 'mouvement soutenu', desc: 'Geste lent et continu — délibération, solennité, rituel', source: 'laban', platforms: ['veo','kling','mj'] },
+      { en: 'direct focus', fr: 'focus direct', desc: 'Corps et regard orientés précisément — intention claire', source: 'laban', platforms: ['all'] },
+      { en: 'indirect, meandering', fr: 'indirect, errant (Laban)', desc: 'Mouvement sans direction précise — confusion, exploration, rêverie', source: 'laban', platforms: ['veo','kling'] },
+      { en: 'bound movement', fr: 'mouvement retenu / contrôlé', desc: 'Tension musculaire, retenue — peur, contrôle, résistance', source: 'laban', platforms: ['veo','kling','canvas'] },
+      { en: 'free flow movement', fr: 'mouvement libre / fluide', desc: 'Aisance, abandon — danse, ivresse, libération', source: 'laban', platforms: ['veo','kling','mj'] },
+      { en: 'collapsed posture', fr: 'posture effondrée', desc: 'Corps qui se dérobe — honte, épuisement, défaite', source: 'laban', platforms: ['all'] },
+      { en: 'expansive gesture', fr: 'geste expansif', desc: 'Le corps s\'ouvre au maximum — confiance, joie, discours', source: 'laban', platforms: ['all'] },
+      { en: 'protective self-touch', fr: 'auto-contact protecteur', desc: 'Mains sur poitrine, bras croisés — vulnérabilité, défense', source: 'psycho', platforms: ['all'] },
+      { en: 'trembling hands', fr: 'mains tremblantes', desc: 'Tremblement fin — peur, fureur retenue, émotion extrême', source: 'direction', platforms: ['veo','kling','canvas'] },
+    ]
+  },
+  {
+    num: '05',
+    icon: '👁',
+    title: 'Micro-Expressions & Visage',
+    subtitle: 'Facial nuance — Paul Ekman & direction de jeu',
+    terms: [
+      { en: 'micro-expression of contempt', fr: 'micro-expression de mépris', desc: 'Coin de lèvre légèrement relevé d\'un seul côté — asymétrie', source: 'psycho', platforms: ['veo','mj','canvas'] },
+      { en: 'eyes glistening with unshed tears', fr: 'yeux brillants de larmes retenues', desc: 'L\'émotion au bord des cils, sans laisser couler', source: 'direction', platforms: ['all'] },
+      { en: 'jaw clenched in restraint', fr: 'mâchoire serrée de retenue', desc: 'Colère ou douleur ravалée — tension mandibulaire visible', source: 'direction', platforms: ['veo','kling','mj'] },
+      { en: 'thousand-yard stare', fr: 'regard perdu dans le vide', desc: 'Regard fixe et lointain — trauma, choc, dissociation', source: 'direction', platforms: ['all'] },
+      { en: 'soft eyes', fr: 'regard adouci', desc: 'Regard détendu et présent — compassion, amour, acceptation', source: 'meisner', platforms: ['all'] },
+      { en: 'haunted expression', fr: 'expression hantée', desc: 'Le visage portant le poids d\'un passé douloureux', source: 'direction', platforms: ['all'] },
+      { en: 'faint smile of resignation', fr: 'sourire résigné', desc: 'Sourire triste qui accepte l\'inévitable', source: 'direction', platforms: ['all'] },
+      { en: 'flash of recognition', fr: 'éclair de reconnaissance', desc: 'L\'instant où quelque chose est compris — illumination brève', source: 'direction', platforms: ['veo','kling','canvas'] },
+      { en: 'controlled breathing visible', fr: 'respiration contrôlée visible', desc: 'On voit le personnage gérer son souffle — stress, effort', source: 'stanislavski', platforms: ['veo','kling'] },
+      { en: 'furrowed brow of concentration', fr: 'front plissé de concentration', desc: 'Effort cognitif visible — résolution de problème, calcul', source: 'direction', platforms: ['all'] },
+    ]
+  },
+  {
+    num: '06',
+    icon: '🔥',
+    title: 'Actions Physiques Expressives',
+    subtitle: 'Physical actions — actes chargés de sens',
+    terms: [
+      { en: 'reaching out slowly', fr: 'tendre la main lentement', desc: 'Geste d\'aspiration ou de connexion — risque, vulnérabilité', source: 'direction', platforms: ['all'] },
+      { en: 'recoiling in horror', fr: 'reculer d\'horreur', desc: 'Retrait instinctif du corps face au choc ou au dégoût', source: 'direction', platforms: ['veo','kling','canvas'] },
+      { en: 'turning away', fr: 'se détourner', desc: 'Refus de regarder — rejet, douleur, impossibilité', source: 'direction', platforms: ['all'] },
+      { en: 'stillness charged with tension', fr: 'immobilité chargée de tension', desc: 'Le calme avant la tempête — inaction qui dit tout', source: 'stanislavski', platforms: ['all'] },
+      { en: 'hesitant approach', fr: 'approche hésitante', desc: 'Avancer et reculer — ambivalence, peur du rejet', source: 'direction', platforms: ['all'] },
+      { en: 'exhausted collapse', fr: 'effondrement épuisé', desc: 'Le corps qui lâche enfin — après l\'effort, le trauma, la tension', source: 'direction', platforms: ['veo','kling','canvas'] },
+      { en: 'pacing with anxiety', fr: 'faire les cent pas / arpenter (anxiété)', desc: 'Mouvement répétitif pour canaliser l\'angoisse', source: 'psycho', platforms: ['veo','kling'] },
+      { en: 'clenching fists', fr: 'serrer les poings', desc: 'Contention de la colère ou préparation à l\'action', source: 'direction', platforms: ['veo','kling','canvas'] },
+      { en: 'burying face in hands', fr: 'enfouir le visage dans les mains', desc: 'Honte, détresse profonde, impossibilité de regarder', source: 'direction', platforms: ['all'] },
+      { en: 'deep involuntary sigh', fr: 'soupir involontaire profond', desc: 'Le corps expulse une charge émotionnelle — résignation, soulagement', source: 'direction', platforms: ['veo','kling'] },
+      { en: 'frozen in place', fr: 'figé sur place', desc: 'Pétrification par le choc, la peur ou l\'émerveillement', source: 'direction', platforms: ['all'] },
+      { en: 'nervous laughter', fr: 'rire nerveux', desc: 'Rire de défense — tension inappropriée, malaise', source: 'psycho', platforms: ['veo','kling','canvas'] },
+    ]
+  },
+  {
+    num: '07',
+    icon: '💬',
+    title: 'Relations & Interactions',
+    subtitle: 'Interpersonal dynamics — entre les personnages',
+    terms: [
+      { en: 'tension between two people', fr: 'tension entre deux personnages', desc: 'L\'espace entre eux chargé d\'électricité non-dite', source: 'direction', platforms: ['all'] },
+      { en: 'unspoken attraction', fr: 'attraction non-dite', desc: 'Désir contenu — regards, distances, accidents de contact', source: 'direction', platforms: ['veo','mj','canvas'] },
+      { en: 'power dynamic', fr: 'rapport de pouvoir', desc: 'L\'un domine subtilement l\'autre — posture, espace, regard', source: 'psycho', platforms: ['all'] },
+      { en: 'silent complicity', fr: 'complicité silencieuse', desc: 'Deux personnages qui se comprennent sans mots', source: 'direction', platforms: ['all'] },
+      { en: 'broken trust', fr: 'trahison / confiance brisée', desc: 'Le moment après la révélation — distance soudaine', source: 'psycho', platforms: ['veo','kling','canvas'] },
+      { en: 'protectiveness', fr: 'comportement protecteur', desc: 'Interposer son corps, se rapprocher physiquement pour défendre', source: 'direction', platforms: ['all'] },
+      { en: 'mutual vulnerability', fr: 'vulnérabilité mutuelle', desc: 'Deux personnes qui baissent leur garde en même temps', source: 'psycho', platforms: ['veo','mj'] },
+      { en: 'cold shoulder', fr: 'ignorer délibérément', desc: 'Présence physique, absence sociale — rejet passif', source: 'direction', platforms: ['all'] },
+      { en: 'loneliness in a crowd', fr: 'solitude dans la foule', desc: 'Isolement malgré l\'entourage — le personnage à part', source: 'direction', platforms: ['all'] },
+      { en: 'intimate distance', fr: 'distance intime (proxémique)', desc: 'Moins de 50cm — espace personnel envahi avec consentement', source: 'psycho', platforms: ['veo','mj','canvas'] },
+    ]
+  },
+  {
+    num: '08',
+    icon: '🌊',
+    title: 'Intensité & Nuance d\'Émotion',
+    subtitle: 'Emotional calibration — du murmure à l\'explosion',
+    terms: [
+      { en: 'barely perceptible', fr: 'à peine perceptible', desc: 'Émotion au minimum — subtilité maximale, lecture active requise', source: 'direction', platforms: ['veo','mj','canvas'] },
+      { en: 'simmering beneath the surface', fr: 'qui couve sous la surface', desc: 'Émotion présente mais non exprimée — prête à éclater', source: 'direction', platforms: ['all'] },
+      { en: 'breaking point', fr: 'point de rupture', desc: 'L\'instant où la digue cède — l\'émotion s\'impose malgré soi', source: 'direction', platforms: ['veo','kling','canvas'] },
+      { en: 'overwhelming', fr: 'submergé / écrasant', desc: 'L\'émotion dépasse toute capacité de contrôle', source: 'direction', platforms: ['veo','kling'] },
+      { en: 'understated', fr: 'en retrait / discret', desc: 'Moins joué qu\'imaginé — l\'économie de jeu magnifie l\'émotion', source: 'meisner', platforms: ['all'] },
+      { en: 'heightened reality', fr: 'réalité amplifiée', desc: 'Style légèrement au-dessus du naturalisme — théâtral mais crédible', source: 'direction', platforms: ['all'] },
+      { en: 'naturalistic', fr: 'naturaliste', desc: 'Jeu réaliste et documentaire — comme si la caméra n\'existait pas', source: 'meisner', platforms: ['veo','kling','mj'] },
+      { en: 'expressionistic', fr: 'expressionniste', desc: 'Extériorisation exagérée de l\'intérieur — forme dictée par l\'émotion', source: 'direction', platforms: ['veo','mj','canvas'] },
+    ]
+  },
+  {
+    num: '09',
+    icon: '✨',
+    title: 'États Poétiques & Atmosphériques',
+    subtitle: 'Poetic states — entre rêve et présence',
+    terms: [
+      { en: 'reverie', fr: 'rêverie', desc: 'Demi-présence — regard perdu dans l\'invisible, pensée qui s\'évade', source: 'direction', platforms: ['all'] },
+      { en: 'awe', fr: 'émerveillement / stupeur admirative', desc: 'Face à quelque chose de plus grand que soi — bouche entrouverte, silence', source: 'direction', platforms: ['all'] },
+      { en: 'serenity', fr: 'sérénité', desc: 'Paix profonde et stable — sourire intérieur, corps déposé', source: 'direction', platforms: ['all'] },
+      { en: 'wistfulness', fr: 'douce mélancolie / nostalgie douce', desc: 'Regret tendre d\'un passé ou d\'un possible non advenu', source: 'direction', platforms: ['all'] },
+      { en: 'trance-like', fr: 'état de transe', desc: 'Semi-conscience, absorption totale dans un état intérieur', source: 'direction', platforms: ['veo','mj','canvas'] },
+      { en: 'epiphany', fr: 'épiphanie / révélation soudaine', desc: 'Le moment où tout devient clair — lumière sur le visage, silence', source: 'direction', platforms: ['veo','kling','mj'] },
+      { en: 'bittersweet', fr: 'doux-amer', desc: 'Joie et tristesse mêlées — le bonheur qui contient sa fin', source: 'direction', platforms: ['all'] },
+      { en: 'sacred solemnity', fr: 'solennité sacrée', desc: 'Gravité rituelle — le personnage en présence de quelque chose de grand', source: 'direction', platforms: ['all'] },
+      { en: 'liminal state', fr: 'état liminaire / seuil', desc: 'Entre deux états — ni ici ni là, transition suspendue', source: 'psycho', platforms: ['veo','mj'] },
+      { en: 'wonder', fr: 'émerveillement pur', desc: 'Yeux grands ouverts, souffle retenu — la première fois', source: 'direction', platforms: ['all'] },
+    ]
+  },
+  {
+    num: '10',
+    icon: '⚡',
+    title: 'Archétypes & Personnalités',
+    subtitle: 'Character archetypes — pour orienter le personnage',
+    terms: [
+      { en: 'the stoic', fr: 'le stoïque', desc: 'Contrôle total des émotions — ce qu\'il ressent transparaît malgré lui', source: 'direction', platforms: ['all'] },
+      { en: 'the wounded healer', fr: 'le guérisseur blessé', desc: 'Aide les autres malgré — ou grâce à — sa propre douleur', source: 'psycho', platforms: ['veo','mj'] },
+      { en: 'the reluctant hero', fr: 'le héros malgré lui', desc: 'Ne voulait pas être là — la peur et le courage en tension', source: 'direction', platforms: ['veo','kling'] },
+      { en: 'the unreliable narrator (body)', fr: 'le narrateur peu fiable (corporel)', desc: 'Le corps trahit ce que les mots nient', source: 'psycho', platforms: ['veo','mj','canvas'] },
+      { en: 'the observer', fr: 'l\'observateur', desc: 'Regarder sans participer — retrait, analyse, solitude choisie', source: 'direction', platforms: ['all'] },
+      { en: 'the caretaker under pressure', fr: 'le protecteur sous pression', desc: 'Façade de force pour les autres, effondrement intérieur', source: 'psycho', platforms: ['all'] },
+      { en: 'the feral vulnerability', fr: 'la vulnérabilité sauvage', desc: 'Quelqu\'un de blessé mais dangereux — imprévisible, à vif', source: 'direction', platforms: ['veo','kling','canvas'] },
+      { en: 'the dignified resignation', fr: 'la résignation digne', desc: 'Accepter ce qu\'on ne peut changer avec grâce', source: 'direction', platforms: ['all'] },
+    ]
+  },
+  {
+    num: '11',
+    icon: '🎵',
+    title: 'Termes Spécifiques Plateformes',
+    subtitle: 'Platform-specific emotional prompting',
+    terms: [
+      { en: 'character speaking with visible emotion (Veo 3)', fr: 'personnage parlant avec émotion visible (Veo 3)', desc: 'Veo 3 génère du son et des dialogues — préciser l\'état émotionnel dans la voix', source: 'direction', platforms: ['veo'] },
+      { en: 'voice trembling with grief', fr: 'voix tremblante de chagrin', desc: 'Directive vocale pour Veo 3 — le tremblement de gorge', source: 'direction', platforms: ['veo'] },
+      { en: 'emotion expressed through body only, no face visible', fr: 'émotion exprimée par le corps seul, visage hors champ', desc: 'Technique pour Kling et MJ — contraindre l\'expressivité au corps', source: 'laban', platforms: ['kling','mj'] },
+      { en: 'facial expression: name the emotion explicitly', fr: 'expression faciale : nommer l\'émotion explicitement', desc: 'Midjourney répond mieux aux noms d\'émotions directs qu\'aux descriptions', source: 'direction', platforms: ['mj'] },
+      { en: 'motion style: anxious fidgeting', fr: 'style de mouvement : agitation anxieuse', desc: 'Pour Canvas et Kling — petits mouvements nerveux caractéristiques', source: 'psycho', platforms: ['canvas','kling'] },
+      { en: 'portrait expression: thousand emotions at once', fr: 'portrait : mille émotions à la fois', desc: 'Midjourney crée des visages à lecture multiple — ambiguïté émotionnelle riche', source: 'direction', platforms: ['mj'] },
+      { en: 'grief lighting: cool shadows, single warm source', fr: 'éclairage du deuil : ombres froides, source chaude unique', desc: 'Associer lumière et émotion pour renforcer cohérence Banana/Canvas', source: 'direction', platforms: ['banana','canvas'] },
+      { en: 'emotional arc across frames', fr: 'arc émotionnel sur plusieurs images', desc: 'Pour Kling — préciser l\'évolution de l\'état entre début et fin de clip', source: 'stanislavski', platforms: ['kling'] },
+      { en: 'ambient emotional atmosphere', fr: 'atmosphère émotionnelle ambiante', desc: 'Banana Pro est sensible aux descripteurs d\'ambiance globale — enveloppement', source: 'direction', platforms: ['banana'] },
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SOURCE LABELS
+// ═══════════════════════════════════════════════════════════════════════════
+const SOURCE_LABELS = {
+  stanislavski: 'Stanislavski / Méthode',
+  meisner: 'Meisner',
+  laban: 'Laban (mouvement)',
+  psycho: 'Psychologie',
+  direction: 'Direction d\'acteur',
+  universal: 'Universel',
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════════════
+const main = document.getElementById('main');
+
+function platformClass(platforms) {
+  if (platforms.includes('all') || platforms.length >= 4) return 'all';
+  return platforms[0];
+}
+
+function buildBadges(platforms) {
+  if (platforms.includes('all')) return '';
+  return `<div class="badges">${platforms.map(p => `<span class="badge ${p}">${p === 'mj' ? 'MJ' : p === 'banana' ? 'BANANA' : p === 'canvas' ? 'CANVAS' : p.toUpperCase()}</span>`).join('')}</div>`;
+}
+
+SECTIONS.forEach((section, idx) => {
+  const sec = document.createElement('div');
+  sec.className = 'section';
+  sec.dataset.sectionId = idx;
+
+  sec.innerHTML = `
+    <div class="section-header">
+      <div class="section-num">${section.num}</div>
+      <div class="section-info">
+        <div class="section-title">${section.icon} ${section.title}</div>
+        <div class="section-subtitle">${section.subtitle}</div>
+      </div>
+      <div class="section-line" style="display:none"></div>
+      <div class="section-count">${section.terms.length} termes</div>
+    </div>`;
+
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+
+  section.terms.forEach(term => {
+    const cls = term.platforms.includes('all') || term.platforms.length >= 4 ? 'all' : term.platforms[0];
+    const card = document.createElement('div');
+    card.className = `term ${cls}`;
+    card.dataset.en = term.en.toLowerCase();
+    card.dataset.fr = term.fr.toLowerCase();
+    card.dataset.desc = (term.desc || '').toLowerCase();
+    card.dataset.platforms = term.platforms.join(',');
+    card.dataset.source = term.source;
+
+    card.innerHTML = `
+      <div class="term-top">
+        <div class="term-en">${term.en}</div>
+        ${buildBadges(term.platforms)}
+      </div>
+      <div class="term-fr">${term.fr}</div>
+      ${term.desc ? `<div class="term-desc">${term.desc}</div>` : ''}
+      ${term.source ? `<span class="term-source">${SOURCE_LABELS[term.source] || term.source}</span>` : ''}
+      <span class="copy-hint">⎘ copier</span>
+    `;
+
+    card.addEventListener('click', () => copyCard(card, term.en));
+    grid.appendChild(card);
+  });
+
+  sec.appendChild(grid);
+  main.appendChild(sec);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COPY
+// ═══════════════════════════════════════════════════════════════════════════
+const toast = document.getElementById('toast');
+let toastT;
+
+function copyCard(card, text) {
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+  card.classList.add('copied');
+  setTimeout(() => card.classList.remove('copied'), 1100);
+  toast.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FILTER
+// ═══════════════════════════════════════════════════════════════════════════
+let activeFilter = 'all';
+
+document.querySelectorAll('.legend-item').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activeFilter = btn.dataset.filter;
+    document.querySelectorAll('.legend-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+  });
+});
+
+document.getElementById('search').addEventListener('input', applyFilters);
+
+function applyFilters() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+
+  document.querySelectorAll('.term').forEach(card => {
+    const platformMatch = activeFilter === 'all' || card.dataset.platforms.includes(activeFilter);
+    const searchMatch = !q ||
+      card.dataset.en.includes(q) ||
+      card.dataset.fr.includes(q) ||
+      card.dataset.desc.includes(q) ||
+      card.dataset.source.includes(q);
+    card.classList.toggle('hidden', !(platformMatch && searchMatch));
+  });
+
+  document.querySelectorAll('.section').forEach(sec => {
+    const hasVisible = [...sec.querySelectorAll('.term')].some(c => !c.classList.contains('hidden'));
+    sec.classList.toggle('hidden', !hasVisible);
+  });
+}
+</script>
+</body>
+</html>
